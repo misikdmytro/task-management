@@ -16,6 +16,7 @@ jobs:
           node-version: 18
           cache: "yarn"
       - run: yarn install --frozen-lockfile
+      - run: yarn run lint
       - run: yarn test
       - run: docker-compose down --volumes
         if: always()

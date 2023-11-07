@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest --watchAll --verbose",
+    "test": "jest --verbose",
     "lint": "eslint . --ext .js"
   },
   "dependencies": {
