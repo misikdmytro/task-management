@@ -15,8 +15,6 @@ jobs:
         with:
           node-version: 18
           cache: "yarn"
-      - run: go --version
-      - run: go mod download
       - run: yarn install --frozen-lockfile
       - run: yarn test
       - run: docker-compose down --volumes
