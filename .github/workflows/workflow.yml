@@ -17,6 +17,10 @@ jobs:
           cache: "yarn"
       - run: yarn install --frozen-lockfile
       - run: yarn run lint
+      - run: docker-compose up -d mongo
       - run: yarn test
+      - run: docker-compose build
+      - run: docker-compose logs
+        if: always()
       - run: docker-compose down --volumes
         if: always()

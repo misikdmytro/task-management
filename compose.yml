@@ -1,7 +1,20 @@
 version: '3.9'
 
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
+    app:
+        build: .
+        ports:
+            - '8081:80'
+        volumes:
+            - ./configs/docker.env:/app/configs/.env
+
+    mongo:
+        image: mongo:5
+        restart: always
+        ports:
+            - 27017:27017
+        volumes:
+            - mongodata:/data/db
+
+volumes:
+    mongodata:

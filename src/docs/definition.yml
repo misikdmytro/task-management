@@ -1,0 +1,36 @@
+components:
+  schemas:
+    CreateTask:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The task name
+          example: Buy milk
+
+    CreateTaskResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the task was created successfully
+          example: true
+        task:
+          $ref: "#/components/schemas/Task"
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The task ID
+          example: 1
+        name:
+          type: string
+          description: The task name
+          example: Buy milk
+        createdAt:
+          type: string
+          format: date-time
+          description: The task creation date
+          example: 2021-01-01T00:00:00.000Z

@@ -1,11 +1,39 @@
-const express = require('express');
+const { connect } = require('./db');
+const app = require('./app');
+const config = require('./config/config');
+const logger = require('./config/logger');
 
-const app = express();
+async function run() {
+  await connect();
+  const server = app.listen(config.port, () => {
+    logger.info('app started', { port: config.port });
+  });
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+  const exitHandler = () => {
+    if (server) {
+      server.close(() => {
+        logger.info('server closed');
+        process.exit(1);
+      });
+    } else {
+      process.exit(1);
+    }
+  };
 
-app.listen(3000, () => {
-  console.log('Example app listening on port 3000!');
-});
+  const unexpectedErrorHandler = (error) => {
+    logger.error('unhandled error', { error });
+    exitHandler();
+  };
+
+  process.on('uncaughtException', unexpectedErrorHandler);
+  process.on('unhandledRejection', unexpectedErrorHandler);
+
+  process.on('SIGTERM', () => {
+    logger.info('SIGTERM received');
+    if (server) {
+      server.close();
+    }
+  });
+}
+
+run();
