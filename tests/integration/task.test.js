@@ -369,15 +369,15 @@ describe('Task', () => {
         },
         {
           name: 'new-active-completed-new',
-          updates: ['active', 'active', 'new'],
+          updates: ['active', 'completed', 'new'],
         },
         {
-          name: 'new-active-canceled-active',
-          updates: ['active', 'active', 'active'],
+          name: 'new-active-cancelled-active',
+          updates: ['active', 'cancelled', 'active'],
         },
         {
-          name: 'new-active-completed-canceled',
-          updates: ['active', 'completed', 'canceled'],
+          name: 'new-active-completed-cancelled',
+          updates: ['active', 'completed', 'cancelled'],
         },
       ];
 
@@ -428,7 +428,7 @@ describe('Task', () => {
           }
 
           const update = updates[updates.length - 1];
-          const prevStatus = updates.length - 2 > 0 ? updates[updates.length - 2] : 'new';
+          const prevStatus = updates.length - 2 >= 0 ? updates[updates.length - 2] : 'new';
 
           response = await fetch(`${baseUrl}/${result.task.id}`, {
             method: 'post',
@@ -444,7 +444,7 @@ describe('Task', () => {
 
           expect(result3.task).toBeUndefined();
           expect(result3.success).toEqual(false);
-          expect(result3.message).toEqual(`cannot update from '${update}' to '${prevStatus}'`);
+          expect(result3.message).toEqual(`cannot update from '${prevStatus}' to '${update}'`);
         });
       });
     });
