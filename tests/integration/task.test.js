@@ -348,5 +348,105 @@ describe('Task', () => {
         });
       });
     });
+
+    describe('wrong statuses update', () => {
+      const data = [
+        {
+          name: 'new-completed',
+          updates: ['completed'],
+        },
+        {
+          name: 'new-new',
+          updates: ['new'],
+        },
+        {
+          name: 'new-active-new',
+          updates: ['active', 'new'],
+        },
+        {
+          name: 'new-active-active',
+          updates: ['active', 'active'],
+        },
+        {
+          name: 'new-active-completed-new',
+          updates: ['active', 'active', 'new'],
+        },
+        {
+          name: 'new-active-canceled-active',
+          updates: ['active', 'active', 'active'],
+        },
+        {
+          name: 'new-active-completed-canceled',
+          updates: ['active', 'completed', 'canceled'],
+        },
+      ];
+
+      data.forEach(({ name, updates }) => {
+        it(name, async () => {
+          let response = await fetch(baseUrl, {
+            method: 'put',
+            body: JSON.stringify({
+              name: faker.lorem.word(),
+              description: faker.lorem.sentence(),
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(201);
+
+          const result = await response.json();
+
+          expect(result.task).not.toBeNull();
+          expect(result.success).toEqual(true);
+          expect(result.task.id).not.toBeNull();
+
+          for (let i = 0; i < updates.length - 1; i += 1) {
+            const update = updates[i];
+
+            // eslint-disable-next-line no-await-in-loop
+            response = await fetch(`${baseUrl}/${result.task.id}`, {
+              method: 'post',
+              body: JSON.stringify({
+                status: update,
+              }),
+              headers: { 'Content-Type': 'application/json' },
+            });
+
+            expect(response.status).toEqual(200);
+
+            // eslint-disable-next-line no-await-in-loop
+            const result2 = await response.json();
+
+            expect(result2.task).not.toBeNull();
+            expect(result2.success).toEqual(true);
+            expect(result2.task.id).toEqual(result.task.id);
+            expect(result2.task.name).toEqual(result.task.name);
+            expect(result2.task.description).toEqual(result.task.description);
+            expect(result2.task.status).toEqual(update);
+            expect(result2.task.createdAt).toEqual(result.task.createdAt);
+            expect(new Date() - new Date(result2.task.updatedAt)).toBeLessThan(1000);
+          }
+
+          const update = updates[updates.length - 1];
+          const prevStatus = updates.length - 2 > 0 ? updates[updates.length - 2] : 'new';
+
+          response = await fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({
+              status: update,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(400);
+
+          const result3 = await response.json();
+
+          expect(result3.task).toBeUndefined();
+          expect(result3.success).toEqual(false);
+          expect(result3.message).toEqual(`cannot update from '${update}' to '${prevStatus}'`);
+        });
+      });
+    });
   });
 });

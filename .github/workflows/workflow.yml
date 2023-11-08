@@ -18,7 +18,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn run lint
       - run: docker-compose up -d mongo
-      - run: yarn test
+      - run: yarn test -- --verbose
       - run: docker-compose build
       - run: docker-compose logs
         if: always()
