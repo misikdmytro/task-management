@@ -25,13 +25,13 @@ module.exports = router;
  *     application/json:
  *      schema:
  *       $ref: '#/components/schemas/CreateTask'
- *    responses:
- *     201:
- *      description: Task Created
- *      content:
- *       application/json:
- *        schema:
- *         $ref: '#/components/schemas/Task'
- *      500:
- *       description: Internal Server Error
+ *   responses:
+ *    201:
+ *     description: Task Created
+ *     content:
+ *      application/json:
+ *       schema:
+ *        $ref: '#/components/schemas/CreateTaskResult'
+ *    500:
+ *     description: Internal Server Error
  */
