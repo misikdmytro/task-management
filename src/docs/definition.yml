@@ -2,6 +2,8 @@ components:
   schemas:
     CreateTask:
       type: object
+      required:
+        - name
       properties:
         name:
           type: string
@@ -12,18 +14,29 @@ components:
           description: The task description
           example: Go to the store and buy some milk
 
-    CreateTaskResult:
+    TaskResult:
       type: object
+      required:
+        - success
       properties:
         success:
           type: boolean
-          description: Whether the task was created successfully
+          description: The result status
           example: true
+        message:
+          type: string
+          description: The result message
+          example: Task created successfully
         task:
           $ref: "#/components/schemas/Task"
 
     Task:
       type: object
+      required:
+        - id
+        - name
+        - createdAt
+        - status
       properties:
         id:
           type: string
@@ -35,7 +48,6 @@ components:
           example: Buy milk
         description:
           type: string
-          optional: true
           description: The task description
           example: Go to the store and buy some milk
         createdAt:
@@ -45,7 +57,6 @@ components:
           example: 2021-01-01T00:00:00.000Z
         updatedAt:
           type: string
-          optional: true
           format: date-time
           description: The task update date
           example: 2021-01-01T00:00:00.000Z

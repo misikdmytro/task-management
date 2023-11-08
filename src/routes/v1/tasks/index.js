@@ -5,6 +5,7 @@ const validate = require('../../../middlewares/validate');
 
 const router = Router();
 
+router.get('/:id', validate(taskValidation.getTaskById), taskController.getTaskById);
 router.put('/', validate(taskValidation.createTask), taskController.createTask);
 
 module.exports = router;
@@ -14,6 +15,34 @@ module.exports = router;
  * tags:
  *  name: Tasks
  *  description: Task management and retrieval
+ * /v1/tasks/{id}:
+ *  get:
+ *   summary: Get a task by id
+ *   tags: [Tasks]
+ *   description: Get a task by id
+ *   parameters:
+ *    - in: path
+ *      name: id
+ *      schema:
+ *       type: string
+ *       required: true
+ *       description: Task id
+ *       example: 5f0a3d9a3e06e52f3c7a6d5c
+ *   responses:
+ *    200:
+ *     description: Task Retrieved
+ *     content:
+ *      application/json:
+ *       schema:
+ *        $ref: '#/components/schemas/TaskResult'
+ *    404:
+ *     description: Task not found
+ *     content:
+ *      application/json:
+ *       schema:
+ *        $ref: '#/components/schemas/TaskResult'
+ *    500:
+ *     description: Internal Server Error
  * /v1/tasks:
  *  put:
  *   summary: Create a task
@@ -31,7 +60,7 @@ module.exports = router;
  *     content:
  *      application/json:
  *       schema:
- *        $ref: '#/components/schemas/CreateTaskResult'
+ *        $ref: '#/components/schemas/TaskResult'
  *    500:
  *     description: Internal Server Error
  */
