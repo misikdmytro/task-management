@@ -4,6 +4,8 @@ const config = require('./config/config');
 const logger = require('./config/logger');
 
 async function run() {
+  logger.init();
+
   await connect();
   const server = app.listen(config.port, () => {
     logger.info('app started', { port: config.port });
