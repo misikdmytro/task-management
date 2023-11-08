@@ -1,8 +1,7 @@
 const Task = require('../models/task');
 
-async function createTask(name) {
-  const task = await Task.create({ name });
-  return task;
+function createTask(name, description) {
+  return Task.create({ name, description });
 }
 
 module.exports = {

@@ -7,9 +7,13 @@ const TaskSchema = new Schema({
     type: String,
     required: true,
   },
+  description: {
+    type: String,
+    required: false,
+  },
   status: {
     type: String,
-    enum: ['new', 'active', 'complete', 'cancelled'],
+    enum: ['new', 'active', 'completed', 'cancelled'],
     default: 'new',
   },
   createdAt: {

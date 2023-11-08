@@ -7,6 +7,10 @@ components:
           type: string
           description: The task name
           example: Buy milk
+        description:
+          type: string
+          description: The task description
+          example: Go to the store and buy some milk
 
     CreateTaskResult:
       type: object
@@ -29,8 +33,28 @@ components:
           type: string
           description: The task name
           example: Buy milk
+        description:
+          type: string
+          optional: true
+          description: The task description
+          example: Go to the store and buy some milk
         createdAt:
           type: string
           format: date-time
           description: The task creation date
           example: 2021-01-01T00:00:00.000Z
+        updatedAt:
+          type: string
+          optional: true
+          format: date-time
+          description: The task update date
+          example: 2021-01-01T00:00:00.000Z
+        status:
+          type: string
+          description: The task status
+          example: new
+          enum:
+            - new
+            - active
+            - completed
+            - canceled
