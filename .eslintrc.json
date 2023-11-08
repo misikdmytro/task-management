@@ -8,8 +8,7 @@
     "overrides": [
         {
             "files": [
-                "tests/**/*.test.js",
-                "tests/integration/common.js"
+                "tests/**/*.js"
             ],
             "env": {
                 "jest": true

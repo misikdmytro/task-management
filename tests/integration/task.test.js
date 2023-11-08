@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { setupServer } = require('./common');
+const { setupServer } = require('./server');
 const config = require('../common/config');
 
 setupServer();
