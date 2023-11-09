@@ -13,12 +13,6 @@ const swaggerDefinition = {
       name: 'Task API',
     },
   },
-  servers: [
-    {
-      url: 'http://localhost:3001/',
-      description: 'Development server',
-    },
-  ],
 };
 
 module.exports = swaggerDefinition;

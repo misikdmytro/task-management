@@ -1,7 +1,7 @@
 const onHeaders = require('on-headers');
 const logger = require('../config/logger');
 
-function tracker(req, res, next) {
+function loggerMiddleware(req, res, next) {
   const started = new Date();
   logger.debug('request received', { url: req.url, method: req.method, body: req.body });
 
@@ -17,4 +17,4 @@ function tracker(req, res, next) {
   next();
 }
 
-module.exports = tracker;
+module.exports = loggerMiddleware;

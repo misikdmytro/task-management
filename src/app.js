@@ -7,7 +7,7 @@ const docs = require('./routes/docs');
 const health = require('./routes/health');
 const v1 = require('./routes/v1');
 const { errorHandler } = require('./middlewares/error');
-const tracker = require('./middlewares/tracker');
+const logger = require('./middlewares/logger');
 
 const app = express();
 
@@ -15,8 +15,8 @@ const app = express();
 app.use(prometheus());
 app.use(express.json());
 
-// tracker
-app.use(tracker);
+// logger
+app.use(logger);
 
 // sanitize request data
 app.use(xss());
