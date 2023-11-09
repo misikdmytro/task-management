@@ -2,6 +2,7 @@ const express = require('express');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const compression = require('compression');
+const prometheus = require('express-prom-bundle');
 const docs = require('./routes/docs');
 const health = require('./routes/health');
 const v1 = require('./routes/v1');
@@ -10,6 +11,8 @@ const tracker = require('./middlewares/tracker');
 
 const app = express();
 
+// service
+app.use(prometheus());
 app.use(express.json());
 
 // tracker

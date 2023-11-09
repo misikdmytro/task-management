@@ -27,8 +27,8 @@ services:
 
     loki:
         image: grafana/loki:2.9.0
-        ports:
-            - 3100:3100
+        expose:
+            - 3100
         command: -config.file=/etc/loki/local-config.yaml
 
     promtail:
@@ -37,6 +37,15 @@ services:
             - logs:/var/log:rw
             - ./infrastructure/promtail.yml:/etc/promtail/config.yml
         command: -config.file=/etc/promtail/config.yml
+
+    prometheus:
+        image: prom/prometheus:latest
+        volumes:
+            - ./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+        expose:
+            - 9090
 
     grafana:
         image: grafana/grafana:latest
