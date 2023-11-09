@@ -1,12 +1,11 @@
 const { faker } = require('@faker-js/faker');
 const fetch = require('node-fetch');
 const { setupServer } = require('./server');
-const config = require('../common/config');
 
 setupServer();
 
 describe('Task', () => {
-  const baseUrl = `http://${config.host}:${config.port}/v1/tasks`;
+  const baseUrl = `http://${process.env.HOST}:${process.env.PORT}/v1/tasks`;
 
   describe('get', () => {
     it('should return 404', async () => {
@@ -14,9 +13,7 @@ describe('Task', () => {
       expect(response.status).toEqual(404);
 
       const result = await response.json();
-      expect(result.task).toBeUndefined();
-      expect(result.success).toEqual(false);
-      expect(result.message).toEqual('task not found');
+      expect(result).toEqual({ success: false, message: 'task not found' });
     });
 
     describe('should return 400', () => {
@@ -41,11 +38,10 @@ describe('Task', () => {
           expect(response.status).toEqual(400);
 
           const result = await response.json();
-          expect(result.task).toBeUndefined();
-          expect(result.success).toEqual(false);
-          expect(result.message).toEqual(
-            `"id" with value "${id}" fails to match the required pattern: /^[0-9a-fA-F]{24}$/`,
-          );
+          expect(result).toEqual({
+            success: false,
+            message: `"id" with value "${id}" fails to match the required pattern: /^[0-9a-fA-F]{24}$/`,
+          });
         });
       });
     });
@@ -91,14 +87,18 @@ describe('Task', () => {
 
           const result = await response.json();
 
-          expect(result.task).not.toBeNull();
-          expect(result.success).toEqual(true);
-          expect(result.task.id).not.toBeNull();
-          expect(result.task.name).toEqual(taskName);
-          expect(result.task.description).toEqual(description);
-          expect(result.task.status).toEqual('new');
+          expect(result).toEqual({
+            success: true,
+            task: {
+              id: expect.any(String),
+              name: taskName,
+              description,
+              status: 'new',
+              createdAt: expect.any(String),
+            },
+          });
+
           expect(new Date() - new Date(result.task.createdAt)).toBeLessThan(1000);
-          expect(result.task.updatedAt).toBeUndefined();
 
           response = await fetch(`${baseUrl}/${result.task.id}`);
 
@@ -106,20 +106,111 @@ describe('Task', () => {
 
           const result2 = await response.json();
 
-          expect(result2.task).not.toBeNull();
-          expect(result2.success).toEqual(true);
-          expect(result2.task.id).toEqual(result.task.id);
-          expect(result2.task.name).toEqual(taskName);
-          expect(result2.task.description).toEqual(description);
-          expect(result2.task.status).toEqual('new');
-          expect(result2.task.createdAt).toEqual(result.task.createdAt);
-          expect(result2.task.updatedAt).toBeUndefined();
+          expect(result2).toEqual({
+            success: true,
+            task: {
+              id: result.task.id,
+              name: taskName,
+              description,
+              status: 'new',
+              createdAt: result.task.createdAt,
+            },
+          });
         });
       });
     });
   });
 
   describe('create & update', () => {
+    describe('update', () => {
+      it('should return 404', async () => {
+        const response = await fetch(`${baseUrl}/${faker.database.mongodbObjectId()}`, {
+          method: 'post',
+          body: JSON.stringify({
+            name: faker.lorem.word(),
+            description: faker.lorem.sentence(),
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        expect(response.status).toEqual(404);
+
+        const result = await response.json();
+
+        expect(result).toEqual({ success: false, message: 'task not found' });
+      });
+
+      describe('should return 400', () => {
+        it('no updates', async () => {
+          let response = await fetch(baseUrl, {
+            method: 'put',
+            body: JSON.stringify({
+              name: 'Task 1',
+              description: 'Task 1 description',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(201);
+
+          const result = await response.json();
+
+          expect(result.success).toEqual(true);
+          expect(result.task).not.toBeNull();
+          expect(result.task.id).not.toBeNull();
+
+          response = await fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({}),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(400);
+
+          const result2 = await response.json();
+
+          expect(result2).toEqual({
+            success: false,
+            message: 'at least one update required',
+          });
+        });
+
+        it('invalid status', async () => {
+          let response = await fetch(baseUrl, {
+            method: 'put',
+            body: JSON.stringify({
+              name: 'Task 1',
+              description: 'Task 1 description',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(201);
+
+          const result = await response.json();
+
+          expect(result.task).not.toBeNull();
+          expect(result.success).toEqual(true);
+          expect(result.task.id).not.toBeNull();
+
+          response = await fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({ status: 'invalid' }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(400);
+
+          const result2 = await response.json();
+
+          expect(result2).toEqual({
+            success: false,
+            message: '"status" must be one of [new, active, completed, cancelled]',
+          });
+        });
+      });
+    });
+
     describe('should create & update a task', () => {
       const data = [
         {
@@ -248,11 +339,6 @@ describe('Task', () => {
           expect(result.task).not.toBeNull();
           expect(result.success).toEqual(true);
           expect(result.task.id).not.toBeNull();
-          expect(result.task.name).toEqual(taskName);
-          expect(result.task.description).toEqual(description);
-          expect(result.task.status).toEqual('new');
-          expect(new Date() - new Date(result.task.createdAt)).toBeLessThan(1000);
-          expect(result.task.updatedAt).toBeUndefined();
 
           response = await fetch(`${baseUrl}/${result.task.id}`, {
             method: 'post',
@@ -268,13 +354,18 @@ describe('Task', () => {
 
           const result2 = await response.json();
 
-          expect(result2.task).not.toBeNull();
-          expect(result2.success).toEqual(true);
-          expect(result2.task.id).toEqual(result.task.id);
-          expect(result2.task.name).toEqual(newTaskName ?? taskName);
-          expect(result2.task.description).toEqual(newDescription ?? description);
-          expect(result2.task.status).toEqual(newStatus ?? 'new');
-          expect(result2.task.createdAt).toEqual(result.task.createdAt);
+          expect(result2).toEqual({
+            success: true,
+            task: {
+              id: result.task.id,
+              name: newTaskName ?? taskName,
+              description: newDescription ?? description,
+              status: newStatus ?? 'new',
+              createdAt: result.task.createdAt,
+              updatedAt: expect.any(String),
+            },
+          });
+
           expect(new Date() - new Date(result2.task.updatedAt)).toBeLessThan(1000);
         });
       });
@@ -336,13 +427,18 @@ describe('Task', () => {
             // eslint-disable-next-line no-await-in-loop
             const result2 = await response.json();
 
-            expect(result2.task).not.toBeNull();
-            expect(result2.success).toEqual(true);
-            expect(result2.task.id).toEqual(result.task.id);
-            expect(result2.task.name).toEqual(result.task.name);
-            expect(result2.task.description).toEqual(result.task.description);
-            expect(result2.task.status).toEqual(update);
-            expect(result2.task.createdAt).toEqual(result.task.createdAt);
+            expect(result2).toEqual({
+              success: true,
+              task: {
+                id: result.task.id,
+                name: result.task.name,
+                description: result.task.description,
+                status: update,
+                createdAt: result.task.createdAt,
+                updatedAt: expect.any(String),
+              },
+            });
+
             expect(new Date() - new Date(result2.task.updatedAt)).toBeLessThan(1000);
           }
         });
@@ -417,14 +513,7 @@ describe('Task', () => {
             // eslint-disable-next-line no-await-in-loop
             const result2 = await response.json();
 
-            expect(result2.task).not.toBeNull();
             expect(result2.success).toEqual(true);
-            expect(result2.task.id).toEqual(result.task.id);
-            expect(result2.task.name).toEqual(result.task.name);
-            expect(result2.task.description).toEqual(result.task.description);
-            expect(result2.task.status).toEqual(update);
-            expect(result2.task.createdAt).toEqual(result.task.createdAt);
-            expect(new Date() - new Date(result2.task.updatedAt)).toBeLessThan(1000);
           }
 
           const update = updates[updates.length - 1];
@@ -442,10 +531,74 @@ describe('Task', () => {
 
           const result3 = await response.json();
 
-          expect(result3.task).toBeUndefined();
-          expect(result3.success).toEqual(false);
-          expect(result3.message).toEqual(`cannot update from '${prevStatus}' to '${update}'`);
+          expect(result3).toEqual({
+            success: false,
+            message: `cannot update from '${prevStatus}' to '${update}'`,
+          });
         });
+      });
+    });
+
+    describe('concurrent updates', () => {
+      it('one should 200, another 400', async () => {
+        for (let i = 0; i < 20; i += 1) {
+          // eslint-disable-next-line no-await-in-loop
+          let response = await fetch(baseUrl, {
+            method: 'put',
+            body: JSON.stringify({
+              name: faker.lorem.word(),
+              description: faker.lorem.sentence(),
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(201);
+
+          // eslint-disable-next-line no-await-in-loop
+          const result = await response.json();
+
+          expect(result.task).not.toBeNull();
+          expect(result.success).toEqual(true);
+          expect(result.task.id).not.toBeNull();
+
+          // eslint-disable-next-line no-await-in-loop
+          response = await fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({
+              status: 'active',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          expect(response.status).toEqual(200);
+
+          const promise1 = fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({
+              status: 'completed',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          const promise2 = fetch(`${baseUrl}/${result.task.id}`, {
+            method: 'post',
+            body: JSON.stringify({
+              status: 'cancelled',
+            }),
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          // eslint-disable-next-line no-await-in-loop
+          const [response1, response2] = await Promise.all([promise1, promise2]);
+
+          if (response1.status === 200) {
+            expect(response1.status).toEqual(200);
+            expect(response2.status).toEqual(400);
+          } else {
+            expect(response2.status).toEqual(200);
+            expect(response1.status).toEqual(400);
+          }
+        }
       });
     });
   });

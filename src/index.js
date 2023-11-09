@@ -1,12 +1,15 @@
-const { connect } = require('./db');
+const path = require('path');
+const db = require('./db');
 const app = require('./app');
-const config = require('./config/config');
+const { createConfig } = require('./config/config');
 const logger = require('./config/logger');
 
 async function run() {
-  logger.init();
+  const configPath = path.join(__dirname, '../configs/.env');
+  const config = createConfig(configPath);
 
-  await connect();
+  logger.init(config);
+  await db.init(config);
   const server = app.listen(config.port, () => {
     logger.info('app started', { port: config.port });
   });

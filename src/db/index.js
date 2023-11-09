@@ -1,15 +1,22 @@
 const mongoose = require('mongoose');
-const config = require('../config/config');
 const logger = require('../config/logger');
 
-function connect() {
-  return mongoose.connect(config.mongo.url).catch((err) => {
+let mongoUrl;
+function init({ mongo: { url } }) {
+  mongoUrl = url;
+
+  return mongoose.connect(mongoUrl).catch((err) => {
     logger.error('error in mongo connection', { err });
-    setTimeout(connect, 5000);
+    setTimeout(init, 5000);
   });
 }
 
 const db = mongoose.connection;
+
+function destroy() {
+  db.removeAllListeners();
+  return mongoose.disconnect();
+}
 
 db.on('connected', () => {
   logger.info('mongo connected');
@@ -22,9 +29,10 @@ db.on('error', (error) => {
 
 db.on('disconnected', () => {
   logger.info('mongo disconnected');
-  mongoose.connect(config.mongo.url);
+  mongoose.connect(mongoUrl);
 });
 
 module.exports = {
-  connect,
+  init,
+  destroy,
 };

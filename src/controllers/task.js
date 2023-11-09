@@ -51,6 +51,9 @@ const updateTaskById = catchAsync(async (req, res) => {
       case taskService.errorCodes.TASK_NOT_FOUND_CODE:
         res.status(400).json({ success: false, message: result.error });
         return;
+      case taskService.errorCodes.CONCURRENCY_ERROR_CODE:
+        res.status(500).json({ success: false, message: 'concurrency error' });
+        return;
       default:
         res.status(500).json({ success: false, message: 'internal server error' });
         return;

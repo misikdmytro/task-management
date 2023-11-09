@@ -20,7 +20,10 @@
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "windows": {
                 "program": "${workspaceFolder}/node_modules/jest/bin/jest"
-            }
+            },
+            "args": [
+                "${fileBasenameNoExtension}",
+            ],
         }
     ]
 }
